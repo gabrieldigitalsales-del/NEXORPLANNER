@@ -12,6 +12,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import './styles.css';
 
 const STORAGE_KEY = 'nexor-planner-v9-responsive-notifications-files';
+const AUTH_KEY = 'nexor-planner-simple-auth';
+const SIMPLE_PASSWORD = 'asd123';
 const money = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const todayISO = () => new Date().toISOString().slice(0, 10);
 const daysDiff = (date) => Math.ceil((new Date(date + 'T23:59:00') - new Date()) / 86400000);
@@ -100,6 +102,7 @@ function App() {
   const [modal, setModal] = useState(null);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => localStorage.getItem(AUTH_KEY) === 'ok');
 
   useEffect(() => localStorage.setItem(STORAGE_KEY, JSON.stringify(data)), [data]);
   const update = (patch) => setData((d) => normalizeData({ ...d, ...patch }));
@@ -121,13 +124,17 @@ function App() {
 
   const navigate = (p) => { setPage(p); setActiveClient(null); setMobileMenu(false); setNotificationsOpen(false); };
   const openClient = (client) => { setActiveClient(client.id); setPage('Cliente'); setMobileMenu(false); setNotificationsOpen(false); };
+  const login = () => { localStorage.setItem(AUTH_KEY, 'ok'); setIsAuthenticated(true); };
+  const logout = () => { localStorage.removeItem(AUTH_KEY); setIsAuthenticated(false); setNotificationsOpen(false); setMobileMenu(false); };
+
+  if (!isAuthenticated) return <LoginScreen onLogin={login} />;
 
   return (
     <div className="appShell">
       {mobileMenu && <button className="mobileBackdrop" onClick={() => setMobileMenu(false)} aria-label="Fechar menu" />}
       <Sidebar page={page} setPage={navigate} mobileMenu={mobileMenu} notifications={notifications.length} />
       <main className="main">
-        <Topbar onMenu={() => setMobileMenu(!mobileMenu)} notifications={notifications} open={notificationsOpen} setOpen={setNotificationsOpen} openClient={openClient} navigate={navigate} />
+        <Topbar onMenu={() => setMobileMenu(!mobileMenu)} notifications={notifications} open={notificationsOpen} setOpen={setNotificationsOpen} openClient={openClient} navigate={navigate} onLogout={logout} />
         <div className="content">
           {page === 'Dashboard' && <Dashboard data={data} metrics={metrics} setModal={setModal} openClient={openClient} navigate={navigate} clientById={clientById} />}
           {page === 'Agenda' && <Agenda data={data} setModal={setModal} clientById={clientById} />}
@@ -142,6 +149,37 @@ function App() {
       {modal && <Modal type={modal} close={() => setModal(null)} data={data} update={update} />}
     </div>
   );
+}
+
+
+function LoginScreen({ onLogin }) {
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const submit = (e) => {
+    e.preventDefault();
+    if (password === SIMPLE_PASSWORD) {
+      setError('');
+      onLogin();
+      return;
+    }
+    setError('Senha incorreta. Tente novamente.');
+  };
+  return <main className="loginPage">
+    <section className="loginCard">
+      <div className="loginBrand"><div className="brandIcon">N</div><strong>NEXOR</strong></div>
+      <h1>Entrar no Planner</h1>
+      <p>Digite a senha de acesso para abrir a central operacional.</p>
+      <form onSubmit={submit} className="loginForm">
+        <label>
+          <span>Senha</span>
+          <input type="password" value={password} onChange={(e)=>setPassword(e.target.value)} placeholder="Digite a senha" autoFocus />
+        </label>
+        {error && <div className="loginError">{error}</div>}
+        <button className="btn" type="submit">Entrar</button>
+      </form>
+      <small>Acesso simples local. Para produção, o ideal é login real com Supabase Auth.</small>
+    </section>
+  </main>
 }
 
 function buildNotifications(data, clientById) {
@@ -168,7 +206,7 @@ function Sidebar({ page, setPage, mobileMenu, notifications }) {
     <div className="collapse"><ChevronLeft size={18}/></div>
   </aside>
 }
-function Topbar({ onMenu, notifications, open, setOpen, openClient, navigate }) {
+function Topbar({ onMenu, notifications, open, setOpen, openClient, navigate, onLogout }) {
   return <header className="topbar">
     <button className="iconBtn menu" onClick={onMenu}><Menu size={22}/></button>
     <div className="topbarHint">Central operacional</div>
@@ -177,7 +215,7 @@ function Topbar({ onMenu, notifications, open, setOpen, openClient, navigate }) 
         <button className={`bell ${notifications.length ? 'has' : ''}`} onClick={() => setOpen(!open)}>{notifications.length ? <BellRing size={19}/> : <Bell size={19}/>} {notifications.length > 0 && <span>{notifications.length}</span>}</button>
         {open && <NotificationPanel items={notifications} openClient={openClient} navigate={navigate} />}
       </div>
-      <div className="avatar">NX</div>
+      <button className="logoutBtn" onClick={onLogout}>Sair</button><div className="avatar">NX</div>
     </div>
   </header>
 }
