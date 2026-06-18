@@ -1,39 +1,45 @@
-# NEXOR Planner V10
+# NEXOR Planner V12 — CRUD + Base Zerada
 
-Versão com financeiro usando seletor de mês nativo, responsividade, notificações por prioridade e preparação para Supabase/Vercel.
-
-## Rodar local
-
+## Rodar localmente
 ```bash
 npm install
 npm run dev
 ```
 
-## Financeiro
+Senha simples local: `asd123`
 
-No topo da página Financeiro, o campo de mês agora é um seletor de data do tipo `month`. Ao clicar na caixa, o navegador abre o seletor de mês/ano. Os cards e lançamentos são filtrados pelo mês selecionado.
+## Alterações desta versão
+- Base inicial zerada, sem clientes, tarefas, eventos, financeiro ou arquivos de exemplo.
+- Novo `localStorage` para começar limpo no navegador.
+- Botões de adicionar, editar e apagar clientes.
+- Botões de editar e apagar tarefas.
+- Botões de editar e apagar receitas/gastos.
+- Exclusão de cliente remove automaticamente tarefas, eventos, financeiro e arquivos vinculados.
+- Modais reutilizados para criar e editar.
+- Campos de edição já abrem preenchidos.
+- Mantida preparação para Supabase/Vercel.
 
-## Supabase
+## Reset operacional no Supabase
+Use no SQL Editor para zerar dados do planner sem mexer em outros projetos:
 
-1. Crie um projeto no Supabase.
-2. Vá em SQL Editor.
-3. Cole e execute o arquivo `supabase_nexor_planner.sql`.
-4. Copie `.env.example` para `.env.local`.
-5. Preencha:
-
-```env
-VITE_SUPABASE_URL=https://SEU-PROJETO.supabase.co
-VITE_SUPABASE_ANON_KEY=SUA_CHAVE_ANON_PUBLICA
+```sql
+truncate table public.nexor_planner_files restart identity cascade;
+truncate table public.nexor_planner_finances restart identity cascade;
+truncate table public.nexor_planner_events restart identity cascade;
+truncate table public.nexor_planner_tasks restart identity cascade;
+truncate table public.nexor_planner_clients restart identity cascade;
 ```
 
-O SQL usa prefixo `nexor_planner_` e `np_` em tabelas, policies, triggers e função para evitar conflito com outros projetos.
+Se quiser zerar também configurações e perfis:
 
-## Vercel
+```sql
+truncate table public.nexor_planner_files restart identity cascade;
+truncate table public.nexor_planner_finances restart identity cascade;
+truncate table public.nexor_planner_events restart identity cascade;
+truncate table public.nexor_planner_tasks restart identity cascade;
+truncate table public.nexor_planner_clients restart identity cascade;
+truncate table public.nexor_planner_settings restart identity cascade;
+truncate table public.nexor_planner_profiles restart identity cascade;
+```
 
-1. Suba o projeto para o GitHub.
-2. Importe na Vercel.
-3. Configure as mesmas variáveis de ambiente do `.env.example`.
-4. Build command: `npm run build`.
-5. Output directory: `dist`.
-
-O arquivo `vercel.json` já está incluído para rotas SPA.
+Arquivos físicos do Supabase Storage devem ser removidos pela tela Storage ou pela Storage API.

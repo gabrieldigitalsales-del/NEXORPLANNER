@@ -4,14 +4,14 @@ import {
   LayoutGrid, CalendarDays, Users, CheckSquare, DollarSign, BarChart3, Settings,
   Plus, Search, ChevronDown, ArrowRight, MessageCircle, AlertTriangle, Clock,
   TrendingUp, Zap, Download, Upload, Trash2, X, CheckCircle2, ChevronLeft,
-  ChevronRight, Bell, BellRing, Menu, Sparkles, FileText, Paperclip, FolderOpen
+  ChevronRight, Bell, BellRing, Menu, Sparkles, FileText, Paperclip, FolderOpen, Pencil
 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import './styles.css';
 
-const STORAGE_KEY = 'nexor-planner-v9-responsive-notifications-files';
+const STORAGE_KEY = 'nexor-planner-v12-crud-zero';
 const AUTH_KEY = 'nexor-planner-simple-auth';
 const SIMPLE_PASSWORD = 'asd123';
 const money = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -39,35 +39,11 @@ function priorityLabel(due, status) {
 }
 
 const seed = {
-  clients: [
-    { id: 'c1', name: 'TechFlow Solutions', contact: 'Lucas Mendes', phone: '5531999990001', service: 'Social Media + Tráfego', monthly: 3500, dueDay: 10, status: 'Ativo', color: '#6d5dfc', notes: 'Cliente de tecnologia. Conteúdo objetivo, moderno e com foco em conversão.', briefing: 'Tom profissional, visual limpo, foco em autoridade e performance.' },
-    { id: 'c2', name: 'Bella Estética', contact: 'Ana Clara', phone: '5531999990002', service: 'Social Media', monthly: 2000, dueDay: 5, status: 'Ativo', color: '#ef5da8', notes: 'Priorizar antes/depois, bastidores e agenda semanal.', briefing: 'Tom delicado, feminino, acolhedor e premium.' },
-    { id: 'c3', name: 'Urban Burguer', contact: 'Rafael Costa', phone: '5531999990003', service: 'Social Media + Site', monthly: 2800, dueDay: 15, status: 'Aguardando Pagamento', color: '#f59e0b', notes: 'Cliente precisa aprovar calendário do mês.', briefing: 'Visual jovem, urbano, com chamadas rápidas e apetitosas.' },
-    { id: 'c4', name: 'Dr. Pedro Advocacia', contact: 'Dr. Pedro Silva', phone: '5531999990004', service: 'Site + SEO', monthly: 4000, dueDay: 20, status: 'Em Atraso', color: '#64748b', notes: 'Projeto de site institucional e otimização local.', briefing: 'Tom sério, confiável, institucional, sem promessas exageradas.' },
-    { id: 'c5', name: 'FitPro Academia', contact: 'Mariana Lopes', phone: '5531999990005', service: 'Gestão de Tráfego', monthly: 1800, dueDay: 8, status: 'Ativo', color: '#10b981', notes: 'Campanhas para matrícula e planos mensais.', briefing: 'Tom energético, direto, motivacional.' }
-  ],
-  tasks: [
-    { id: 't1', clientId: 'c1', title: 'Campanha de tráfego Q1', type: 'Social Media', status: 'A Fazer', due: '2026-06-18', description: 'Criar estrutura inicial da campanha.' },
-    { id: 't2', clientId: 'c1', title: 'Criar feed mensal Junho', type: 'Social Media', status: 'Em Produção', due: '2026-06-24', description: 'Montar cronograma visual do feed.' },
-    { id: 't3', clientId: 'c2', title: 'Ensaio fotográfico', type: 'Gravação', status: 'Aguardando Cliente', due: '2026-06-30', description: 'Aguardando confirmação de horário.' },
-    { id: 't4', clientId: 'c4', title: 'Landing page SEO', type: 'Site', status: 'Aguardando Pagamento', due: '2026-06-17', description: 'Finalização depende de pagamento.' },
-    { id: 't5', clientId: 'c5', title: 'Configuração Google Ads', type: 'Tráfego', status: 'Concluído', due: '2026-06-25', description: 'Campanha inicial configurada.' },
-    { id: 't6', clientId: 'c5', title: 'Campanha de matrícula', type: 'Tráfego', status: 'A Fazer', due: '2026-07-10', description: 'Criar criativos e segmentação.' },
-    { id: 't7', clientId: 'c2', title: 'Stories semanais', type: 'Social Media', status: 'A Fazer', due: '2026-07-20', description: 'Pacote de stories da semana.' },
-    { id: 't8', clientId: 'c3', title: 'Redesign do site', type: 'Site', status: 'Em Produção', due: '2026-06-28', description: 'Ajustar layout da home.' }
-  ],
-  events: [
-    { id: 'e1', title: 'Reunião de alinhamento', clientId: 'c3', date: todayISO(), time: '14:00', type: 'Reunião', priority: 'Alta' },
-    { id: 'e2', title: 'Gravação de reels', clientId: 'c2', date: todayISO(), time: '16:30', type: 'Gravação', priority: 'Média' }
-  ],
-  finances: [
-    { id: 'f1', clientId: 'c3', type: 'Receita', title: 'Mensalidade Urban Burguer', amount: 2800, due: todayISO(), status: 'Pendente', category: 'Mensalidade' },
-    { id: 'f2', clientId: 'c2', type: 'Receita', title: 'Mensalidade Bella Estética', amount: 2000, due: todayISO(), status: 'Pago', category: 'Mensalidade' },
-    { id: 'f3', clientId: '', type: 'Gasto', title: 'Ferramentas de design', amount: 220, due: todayISO(), status: 'Pago', category: 'Ferramentas' }
-  ],
-  files: [
-    { id: 'd1', clientId: 'c3', name: 'Contrato Urban Burguer.pdf', type: 'application/pdf', size: 248000, category: 'Contrato', createdAt: todayISO(), dataUrl: '' }
-  ],
+  clients: [],
+  tasks: [],
+  events: [],
+  finances: [],
+  files: [],
   settings: {
     messages: {
       cobrançaProxima: 'Olá {{contato}}! 😊 Tudo bem? Passando para lembrar que o vencimento do serviço de {{servico}} está se aproximando (dia {{vencimento}}). O valor é de {{valor}}. Qualquer dúvida, estou à disposição!',
@@ -138,15 +114,15 @@ function App() {
         <div className="content">
           {page === 'Dashboard' && <Dashboard data={data} metrics={metrics} setModal={setModal} openClient={openClient} navigate={navigate} clientById={clientById} />}
           {page === 'Agenda' && <Agenda data={data} setModal={setModal} clientById={clientById} />}
-          {page === 'Clientes' && <Clients data={data} openClient={openClient} setModal={setModal} />}
+          {page === 'Clientes' && <Clients data={data} update={update} openClient={openClient} setModal={setModal} />}
           {page === 'Cliente' && <ClientDetail data={data} update={update} id={activeClient} back={() => navigate('Clientes')} clientById={clientById} setModal={setModal} />}
           {page === 'Tarefas' && <Tasks data={data} update={update} setModal={setModal} clientById={clientById} />}
-          {page === 'Financeiro' && <Finance data={data} setModal={setModal} clientById={clientById} metrics={metrics} />}
+          {page === 'Financeiro' && <Finance data={data} update={update} setModal={setModal} clientById={clientById} metrics={metrics} />}
           {page === 'Relatórios' && <Reports data={data} metrics={metrics} clientById={clientById} />}
           {page === 'Configurações' && <SettingsPage data={data} update={update} />}
         </div>
       </main>
-      {modal && <Modal type={modal} close={() => setModal(null)} data={data} update={update} />}
+      {modal && <Modal modal={modal} close={() => setModal(null)} data={data} update={update} />}
     </div>
   );
 }
@@ -277,20 +253,24 @@ function Agenda({ data, setModal, clientById }) {
   </>
 }
 
-function Clients({ data, openClient, setModal }) {
+function Clients({ data, update, openClient, setModal }) {
  const [query,setQuery]=useState(''); const [status,setStatus]=useState('Todos');
  const list=data.clients.filter(c=>(status==='Todos'||c.status===status)&&c.name.toLowerCase().includes(query.toLowerCase()));
+ const deleteClient=(c)=>{ if(!confirm(`Apagar o cliente "${c.name}"? Isso também remove tarefas, eventos, financeiro e arquivos vinculados.`)) return; update({clients:data.clients.filter(x=>x.id!==c.id), tasks:data.tasks.filter(t=>t.clientId!==c.id), events:data.events.filter(e=>e.clientId!==c.id), finances:data.finances.filter(f=>f.clientId!==c.id), files:data.files.filter(f=>f.clientId!==c.id)}); };
  return <><PageTitle title="Clientes" subtitle={`${data.clients.length} clientes cadastrados`} action={<Button onClick={()=>setModal('client')}><Plus size={18}/> Novo Cliente</Button>} />
- <div className="filters wide"><label><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar cliente..."/></label><select value={status} onChange={e=>setStatus(e.target.value)}><option>Todos</option><option>Ativo</option><option>Aguardando Pagamento</option><option>Em Atraso</option><option>Pausado</option></select></div>
- <div className="clientGrid">{list.map(c=><ClientCard key={c.id} c={c} tasks={data.tasks.filter(t=>t.clientId===c.id&&t.status!=='Concluído')} files={data.files.filter(f=>f.clientId===c.id)} open={()=>openClient(c)}/>)}</div></>
+ <div className="filters wide"><label><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar cliente..."/></label><select value={status} onChange={e=>setStatus(e.target.value)}><option>Todos</option><option>Ativo</option><option>Aguardando Pagamento</option><option>Em Atraso</option><option>Pausado</option><option>Concluído</option></select></div>
+ <div className="clientGrid">{list.length?list.map(c=><ClientCard key={c.id} c={c} tasks={data.tasks.filter(t=>t.clientId===c.id&&t.status!=='Concluído')} files={data.files.filter(f=>f.clientId===c.id)} open={()=>openClient(c)} onEdit={()=>setModal({type:'client', item:c})} onDelete={()=>deleteClient(c)}/>):<Card><Empty text="Nenhum cliente cadastrado. Clique em Novo Cliente para começar do zero."/></Card>}</div></>
 }
-function ClientCard({ c, tasks, files, open }) { const tone=c.status==='Ativo'?'success':c.status==='Em Atraso'?'danger':'warn'; return <Card className="clientCard"><div className="clientTop"><div className="avatarSquare" style={{background:c.color+'18', color:c.color}}>{c.name[0]}</div><div><h3>{c.name}</h3><p>{c.contact}</p></div><Badge tone={tone}>{c.status}</Badge></div><div className="clientInfo"><p>Serviço<br/><strong>{c.service}</strong></p><p>Valor mensal<br/><strong>{money(c.monthly)}</strong></p><p>Vencimento<br/><strong>Dia {c.dueDay}</strong></p><p>Arquivos<br/><strong>{files.length} doc(s)</strong></p><p>Tarefas<br/><strong>{tasks.length} ativa{tasks.length===1?'':'s'}</strong></p><p>Prioridade<br/><strong>{tasks[0] ? autoPriority(tasks[0].due, tasks[0].status) : 'Baixa'}</strong></p></div><div className="cardFooter"><button onClick={()=>whatsapp(c.phone, `Olá ${c.contact}, tudo bem?`)}><MessageCircle size={16}/> WhatsApp</button><button onClick={open}>Ver detalhes <ArrowRight size={15}/></button></div></Card> }
+function ClientCard({ c, tasks, files, open, onEdit, onDelete }) { const tone=c.status==='Ativo'?'success':c.status==='Em Atraso'?'danger':'warn'; return <Card className="clientCard"><div className="clientTop"><div className="avatarSquare" style={{background:(c.color||'#a38955')+'18', color:c.color||'#a38955'}}>{(c.name||'C')[0]}</div><div><h3>{c.name}</h3><p>{c.contact}</p></div><Badge tone={tone}>{c.status}</Badge></div><div className="clientInfo"><p>Serviço<br/><strong>{c.service}</strong></p><p>Valor mensal<br/><strong>{money(c.monthly)}</strong></p><p>Vencimento<br/><strong>Dia {c.dueDay}</strong></p><p>Arquivos<br/><strong>{files.length} doc(s)</strong></p><p>Tarefas<br/><strong>{tasks.length} ativa{tasks.length===1?'':'s'}</strong></p><p>Prioridade<br/><strong>{tasks[0] ? autoPriority(tasks[0].due, tasks[0].status) : 'Baixa'}</strong></p></div><div className="cardFooter"><button onClick={()=>whatsapp(c.phone, `Olá ${c.contact}, tudo bem?`)}><MessageCircle size={16}/> WhatsApp</button><button onClick={open}>Ver detalhes <ArrowRight size={15}/></button></div><div className="rowActions"><button className="iconAction" onClick={onEdit}><Pencil size={15}/> Editar</button><button className="iconAction danger" onClick={onDelete}><Trash2 size={15}/> Apagar</button></div></Card> }
 
 function ClientDetail({ data, update, id, back, clientById, setModal }) {
- const c=clientById(id)||data.clients[0]; const tasks=data.tasks.filter(t=>t.clientId===c.id); const finances=data.finances.filter(f=>f.clientId===c.id); const files=data.files.filter(f=>f.clientId===c.id); const score=calcScore(c,tasks,finances);
+ const c=clientById(id)||data.clients[0];
+ if(!c) return <><PageTitle title="Cliente não encontrado" subtitle="Cadastre um cliente para começar" action={<Button ghost onClick={back}>Voltar</Button>} /><Card><Empty text="Nenhum cliente cadastrado."/></Card></>;
+ const tasks=data.tasks.filter(t=>t.clientId===c.id); const finances=data.finances.filter(f=>f.clientId===c.id); const files=data.files.filter(f=>f.clientId===c.id); const score=calcScore(c,tasks,finances);
+ const deleteClient=()=>{ if(!confirm(`Apagar o cliente "${c.name}"? Isso também remove tarefas, eventos, financeiro e arquivos vinculados.`)) return; update({clients:data.clients.filter(x=>x.id!==c.id), tasks:data.tasks.filter(t=>t.clientId!==c.id), events:data.events.filter(e=>e.clientId!==c.id), finances:data.finances.filter(f=>f.clientId!==c.id), files:data.files.filter(f=>f.clientId!==c.id)}); back(); };
  const addFiles=(e)=>{ const selected=Array.from(e.target.files||[]); selected.forEach(file=>{ const r=new FileReader(); r.onload=()=> update({ files:[...data.files,{id:uid(),clientId:c.id,name:file.name,type:file.type||'Arquivo',size:file.size,category:guessCategory(file.name),createdAt:todayISO(),dataUrl:r.result}] }); r.readAsDataURL(file); }); e.target.value=''; };
  const removeFile=(fileId)=> update({ files:data.files.filter(f=>f.id!==fileId) });
- return <><PageTitle title={c.name} subtitle={`${c.contact} • ${c.service}`} action={<div className="actions"><Button ghost onClick={back}>Voltar</Button><Button onClick={()=>whatsapp(c.phone, `Olá ${c.contact}, tudo bem?`)}><MessageCircle size={18}/> WhatsApp</Button></div>} />
+ return <><PageTitle title={c.name} subtitle={`${c.contact} • ${c.service}`} action={<div className="actions"><Button ghost onClick={back}>Voltar</Button><Button ghost onClick={()=>setModal({type:'client', item:c})}><Pencil size={18}/> Editar</Button><Button danger onClick={deleteClient}><Trash2 size={18}/> Apagar</Button><Button onClick={()=>whatsapp(c.phone, `Olá ${c.contact}, tudo bem?`)}><MessageCircle size={18}/> WhatsApp</Button></div>} />
  <div className="detailGrid"><Card><h3>Dados principais</h3><div className="clientInfo full detailInfo"><div className="infoField"><span className="infoLabel">Status</span><Badge tone={c.status==='Ativo'?'success':c.status==='Em Atraso'?'danger':'warn'}>{c.status}</Badge></div><div className="infoField"><span className="infoLabel">Valor mensal</span><strong>{money(c.monthly)}</strong></div><div className="infoField"><span className="infoLabel">Vencimento</span><strong>Dia {c.dueDay}</strong></div><div className="infoField"><span className="infoLabel">Score</span><strong className="score">{score}/100</strong></div></div><p className="muted block">{c.notes}</p></Card><Card><h3>Briefing</h3><p className="muted block">{c.briefing}</p></Card><Card><h3>Tarefas do cliente</h3>{tasks.length?tasks.map(t=><TaskSmall key={t.id} t={t} showPriority />):<Empty text="Nenhuma tarefa cadastrada"/>}</Card><Card><h3>Financeiro do cliente</h3>{finances.length?finances.map(f=><FinanceLine key={f.id} f={f}/>):<Empty text="Nenhum lançamento"/>}</Card><Card className="fullSpan"><div className="sectionHead"><h3><FolderOpen size={18}/> Documentos e burocracia</h3><label className="btn ghost"><Upload size={17}/> Enviar ficheiro<input hidden type="file" multiple onChange={addFiles}/></label></div><FileList files={files} onRemove={removeFile}/></Card></div></>
 }
 function guessCategory(name=''){ const n=name.toLowerCase(); if(n.includes('contrato')) return 'Contrato'; if(n.includes('nota')||n.includes('nf')) return 'Nota Fiscal'; if(n.includes('proposta')) return 'Proposta'; return 'Burocrático'; }
@@ -300,18 +280,20 @@ function calcScore(c,tasks,finances){let score=100; score-=tasks.filter(t=>daysD
 function Tasks({ data, update, setModal, clientById }) {
  const cols=['A Fazer','Em Produção','Aguardando Cliente','Aguardando Pagamento','Concluído'];
  const move=(task,status)=> update({tasks:data.tasks.map(t=>t.id===task.id?{...t,status,priority:autoPriority(t.due,status)}:t)});
+ const deleteTask=(task)=>{ if(!confirm(`Apagar a tarefa "${task.title}"?`)) return; update({tasks:data.tasks.filter(t=>t.id!==task.id)}); };
  return <><PageTitle title="Tarefas" subtitle="Prioridade automática: urgente na data, alta até 7 dias, média de 7 a 15 e baixa acima de 15" action={<Button onClick={()=>setModal('task')}><Plus size={18}/> Nova Tarefa</Button>} />
  <div className="priorityLegend"><span><i className="dot danger"/>Urgente: hoje/atrasada</span><span><i className="dot warn"/>Alta: até 7 dias</span><span><i className="dot neutral"/>Média: 7 a 15 dias</span><span><i className="dot success"/>Baixa: acima de 15 dias</span></div>
- <div className="kanban">{cols.map(col=>{const list=data.tasks.filter(t=>t.status===col); return <Card className="kanbanCol" key={col}><div className="kanbanHead"><h3>{col}</h3><span>{list.length}</span></div>{list.map(t=><TaskCard key={t.id} t={t} client={clientById(t.clientId)} move={move}/>)}</Card>})}</div></>
+ <div className="kanban">{cols.map(col=>{const list=data.tasks.filter(t=>t.status===col); return <Card className="kanbanCol" key={col}><div className="kanbanHead"><h3>{col}</h3><span>{list.length}</span></div>{list.length?list.map(t=><TaskCard key={t.id} t={t} client={clientById(t.clientId)} move={move} onEdit={()=>setModal({type:'task', item:t})} onDelete={()=>deleteTask(t)}/>):<Empty text="Sem tarefas"/>}</Card>})}</div></>
 }
-function TaskCard({ t, client, move }) { const priority=autoPriority(t.due,t.status); const late=daysDiff(t.due)<0&&t.status!=='Concluído'; return <div className={`taskCard ${late?'late':''}`}><div className="taskTitle"><strong>{t.title}</strong><Badge tone={priorityTone(priority)}>{priority}</Badge></div><p>{client?.name}</p><div className="taskMeta"><span>{t.type}</span><b><CalendarDays size={14}/>{format(parseISO(t.due),'dd/MM/yyyy')}</b><small>{priorityLabel(t.due,t.status)}</small></div><select value={t.status} onChange={e=>move(t,e.target.value)}><option>A Fazer</option><option>Em Produção</option><option>Aguardando Cliente</option><option>Aguardando Pagamento</option><option>Concluído</option></select></div> }
+function TaskCard({ t, client, move, onEdit, onDelete }) { const priority=autoPriority(t.due,t.status); const late=daysDiff(t.due)<0&&t.status!=='Concluído'; return <div className={`taskCard ${late?'late':''}`}><div className="taskTitle"><strong>{t.title}</strong><Badge tone={priorityTone(priority)}>{priority}</Badge></div><p>{client?.name || 'Sem cliente'}</p><div className="taskMeta"><span>{t.type}</span><b><CalendarDays size={14}/>{format(parseISO(t.due),'dd/MM/yyyy')}</b><small>{priorityLabel(t.due,t.status)}</small></div><select value={t.status} onChange={e=>move(t,e.target.value)}><option>A Fazer</option><option>Em Produção</option><option>Aguardando Cliente</option><option>Aguardando Pagamento</option><option>Concluído</option></select><div className="rowActions compact"><button className="iconAction" onClick={onEdit}><Pencil size={14}/> Editar</button><button className="iconAction danger" onClick={onDelete}><Trash2 size={14}/> Apagar</button></div></div> }
 function TaskSmall({ t, showPriority=false }) { const p=autoPriority(t.due,t.status); return <div className="smallLine"><strong>{t.title}</strong><span>{t.status}</span>{showPriority && <Badge tone={priorityTone(p)}>{p}</Badge>}</div> }
 
-function Finance({ data, setModal, metrics, clientById }) {
+function Finance({ data, update, setModal, metrics, clientById }) {
  const [tab,setTab]=useState('Todos');
  const [selectedMonth,setSelectedMonth]=useState(format(new Date(),'yyyy-MM'));
  const monthList=data.finances.filter(f=>(f.due||'').slice(0,7)===selectedMonth);
  const list=monthList.filter(f=>tab==='Todos'||tab===f.type||tab===f.status);
+ const deleteFinance=(finance)=>{ if(!confirm(`Apagar o lançamento "${finance.title}"?`)) return; update({finances:data.finances.filter(f=>f.id!==finance.id)}); };
  const monthMetrics={
    prevista: monthList.filter(f=>f.type==='Receita').reduce((s,f)=>s+Number(f.amount||0),0),
    gasto: monthList.filter(f=>f.type==='Gasto').reduce((s,f)=>s+Number(f.amount||0),0),
@@ -321,8 +303,8 @@ function Finance({ data, setModal, metrics, clientById }) {
  return <><PageTitle title="Financeiro" subtitle="Controle de receitas, gastos e cobranças" action={<div className="actions"><label className="monthPicker"><span>Mês</span><input className="monthInput" type="month" value={selectedMonth} onChange={e=>setSelectedMonth(e.target.value)} /></label><Button onClick={()=>setModal('finance')}><Plus size={18}/> Novo Lançamento</Button></div>} />
  <div className="metricGrid financeMetrics"><Metric label="Receita prevista" value={money(monthMetrics.prevista)} icon={DollarSign}/><Metric label="Gastos totais" value={money(monthMetrics.gasto)} icon={TrendingUp}/><Metric label="Lucro" value={money(monthMetrics.lucro)} icon={TrendingUp}/><Metric label="Pendentes" value={monthMetrics.pendingPayments} icon={AlertTriangle}/></div>
  <div className="tabs">{['Todos','Receita','Gasto','Pendente','Pago'].map(t=><button className={tab===t?'active':''} onClick={()=>setTab(t)} key={t}>{t}</button>)}</div>
- <Card>{list.length?list.map(f=><FinanceLine f={f} key={f.id} client={clientById(f.clientId)}/>):<Empty text="Nenhum lançamento encontrado neste mês"/>}</Card></> }
-function FinanceLine({ f, client }) { const priority=f.status==='Pago'?'Baixa':autoPriority(f.due); return <div className="financeLine"><div><strong>{f.title}</strong><p>{client?.name || f.category} • {format(parseISO(f.due),'dd/MM/yyyy')}</p></div><strong className={f.type==='Receita'?'green':'red'}>{f.type==='Receita'?'+':'-'} {money(f.amount)}</strong><Badge tone={f.status==='Pago'?'success':priorityTone(priority)}>{f.status}</Badge></div> }
+ <Card>{list.length?list.map(f=><FinanceLine f={f} key={f.id} client={clientById(f.clientId)} onEdit={()=>setModal({type:'finance', item:f})} onDelete={()=>deleteFinance(f)}/>):<Empty text="Nenhum lançamento encontrado neste mês. Clique em Novo Lançamento para começar."/>}</Card></> }
+function FinanceLine({ f, client, onEdit, onDelete }) { const priority=f.status==='Pago'?'Baixa':autoPriority(f.due); return <div className="financeLine"><div><strong>{f.title}</strong><p>{client?.name || f.category || 'Sem cliente'} • {format(parseISO(f.due),'dd/MM/yyyy')}</p></div><strong className={f.type==='Receita'?'green':'red'}>{f.type==='Receita'?'+':'-'} {money(f.amount)}</strong><Badge tone={f.status==='Pago'?'success':priorityTone(priority)}>{f.status}</Badge>{onEdit&&<div className="lineActions"><button className="iconAction" onClick={onEdit}><Pencil size={14}/> Editar</button><button className="iconAction danger" onClick={onDelete}><Trash2 size={14}/> Apagar</button></div>}</div> }
 
 function Reports({ data, metrics }) {
  const byClient=data.clients.map(c=>({name:c.name, tarefas:data.tasks.filter(t=>t.clientId===c.id).length, receita:c.monthly, arquivos:data.files.filter(f=>f.clientId===c.id).length}));
@@ -344,25 +326,41 @@ function SettingsPage({ data, update }) {
 }
 function labelMsg(k){return {cobrançaProxima:'Cobrança Próxima do Vencimento',cobrançaAtrasada:'Cobrança Atrasada',aprovacao:'Tarefa Aguardando Aprovação',concluida:'Entrega Concluída',retorno:'Cliente Aguardando Retorno',reuniao:'Lembrete de Reunião'}[k]||k}
 
-function Modal({ type, close, data, update }) {
- const [form,setForm]=useState({}); const set=(k,v)=>setForm({...form,[k]:v});
+function Modal({ modal, close, data, update }) {
+ const type = typeof modal === 'string' ? modal : modal.type;
+ const item = typeof modal === 'string' ? null : modal.item;
+ const [form,setForm]=useState(item || {}); const set=(k,v)=>setForm({...form,[k]:v});
+ const isEdit=Boolean(item?.id);
  function submit(){
-  if(type==='client') update({clients:[...data.clients,{id:uid(),name:form.name||'Novo Cliente',contact:form.contact||'',phone:form.phone||'',service:form.service||'Social Media',monthly:Number(form.monthly||0),dueDay:Number(form.dueDay||10),status:form.status||'Ativo',color:'#a38955',notes:form.notes||'',briefing:form.briefing||''}]});
-  if(type==='task') update({tasks:[...data.tasks,{id:uid(),clientId:form.clientId||data.clients[0]?.id,title:form.title||'Nova tarefa',type:form.type||'Social Media',status:form.status||'A Fazer',priority:autoPriority(form.due||todayISO(),form.status||'A Fazer'),due:form.due||todayISO(),description:form.description||''}]});
-  if(type==='event') update({events:[...data.events,{id:uid(),clientId:form.clientId||data.clients[0]?.id,title:form.title||'Novo evento',type:form.type||'Reunião',priority:form.priority||'Média',date:form.date||todayISO(),time:form.time||'09:00'}]});
-  if(type==='finance') update({finances:[...data.finances,{id:uid(),clientId:form.clientId||'',type:form.type||'Receita',title:form.title||'Novo lançamento',amount:Number(form.amount||0),due:form.due||todayISO(),status:form.status||'Pendente',category:form.category||'Geral'}]});
+  if(type==='client') {
+   const payload={id:item?.id||uid(),name:form.name||'Novo Cliente',contact:form.contact||'',phone:form.phone||'',service:form.service||'Social Media',monthly:Number(form.monthly||0),dueDay:Number(form.dueDay||10),status:form.status||'Ativo',color:form.color||item?.color||'#a38955',notes:form.notes||'',briefing:form.briefing||''};
+   update({clients:isEdit?data.clients.map(c=>c.id===item.id?payload:c):[...data.clients,payload]});
+  }
+  if(type==='task') {
+   const payload={id:item?.id||uid(),clientId:form.clientId||data.clients[0]?.id||'',title:form.title||'Nova tarefa',type:form.type||'Social Media',status:form.status||'A Fazer',priority:autoPriority(form.due||todayISO(),form.status||'A Fazer'),due:form.due||todayISO(),description:form.description||''};
+   update({tasks:isEdit?data.tasks.map(t=>t.id===item.id?payload:t):[...data.tasks,payload]});
+  }
+  if(type==='event') {
+   const payload={id:item?.id||uid(),clientId:form.clientId||data.clients[0]?.id||'',title:form.title||'Novo evento',type:form.type||'Reunião',priority:form.priority||'Média',date:form.date||todayISO(),time:form.time||'09:00'};
+   update({events:isEdit?data.events.map(e=>e.id===item.id?payload:e):[...data.events,payload]});
+  }
+  if(type==='finance') {
+   const payload={id:item?.id||uid(),clientId:form.clientId||'',type:form.type||'Receita',title:form.title||'Novo lançamento',amount:Number(form.amount||0),due:form.due||todayISO(),status:form.status||'Pendente',category:form.category||'Geral'};
+   update({finances:isEdit?data.finances.map(f=>f.id===item.id?payload:f):[...data.finances,payload]});
+  }
   close();
  }
- const title={client:'Novo Cliente',task:'Nova Tarefa',event:'Novo Evento',finance:'Novo Lançamento'}[type];
+ const title={client:isEdit?'Editar Cliente':'Novo Cliente',task:isEdit?'Editar Tarefa':'Nova Tarefa',event:isEdit?'Editar Evento':'Novo Evento',finance:isEdit?'Editar Lançamento':'Novo Lançamento'}[type];
  return <div className="overlay"><div className="modal"><div className="modalHead"><h2>{title}</h2><button onClick={close}><X/></button></div>
   <div className="formGrid">
-   {type==='client' && <><Input label="Empresa" set={set} k="name"/><Input label="Responsável" set={set} k="contact"/><Input label="WhatsApp" set={set} k="phone"/><Input label="Serviço" set={set} k="service"/><Input label="Valor mensal" set={set} k="monthly" type="number"/><Input label="Dia vencimento" set={set} k="dueDay" type="number"/><Select label="Status" set={set} k="status" opts={['Ativo','Aguardando Pagamento','Em Atraso','Pausado','Concluído']}/><Input label="Briefing" set={set} k="briefing"/></>}
-   {type==='task' && <><Select label="Cliente" set={set} k="clientId" opts={data.clients.map(c=>[c.id,c.name])}/><Input label="Título" set={set} k="title"/><Select label="Status" set={set} k="status" opts={['A Fazer','Em Produção','Aguardando Cliente','Aguardando Pagamento','Concluído']}/><Input label="Prazo" set={set} k="due" type="date"/><Input label="Tipo" set={set} k="type"/><Input label="Descrição" set={set} k="description"/></>}
-   {type==='event' && <><Select label="Cliente" set={set} k="clientId" opts={data.clients.map(c=>[c.id,c.name])}/><Input label="Título" set={set} k="title"/><Input label="Data" set={set} k="date" type="date"/><Input label="Hora" set={set} k="time" type="time"/><Select label="Prioridade" set={set} k="priority" opts={['Baixa','Média','Alta','Urgente']}/><Input label="Tipo" set={set} k="type"/></>}
-   {type==='finance' && <><Select label="Cliente" set={set} k="clientId" opts={[['','Sem cliente'],...data.clients.map(c=>[c.id,c.name])]}/><Input label="Título" set={set} k="title"/><Select label="Tipo" set={set} k="type" opts={['Receita','Gasto']}/><Input label="Valor" set={set} k="amount" type="number"/><Input label="Vencimento" set={set} k="due" type="date"/><Select label="Status" set={set} k="status" opts={['Pendente','Pago','Atrasado']}/></>}
-  </div><div className="modalActions"><Button ghost onClick={close}>Cancelar</Button><Button onClick={submit}>Salvar</Button></div></div></div>
+   {type==='client' && <><Input label="Empresa" value={form.name} set={set} k="name"/><Input label="Responsável" value={form.contact} set={set} k="contact"/><Input label="WhatsApp" value={form.phone} set={set} k="phone"/><Input label="Serviço" value={form.service} set={set} k="service"/><Input label="Valor mensal" value={form.monthly} set={set} k="monthly" type="number"/><Input label="Dia vencimento" value={form.dueDay} set={set} k="dueDay" type="number"/><Select label="Status" value={form.status} set={set} k="status" opts={['Ativo','Aguardando Pagamento','Em Atraso','Pausado','Concluído']}/><Input label="Briefing" value={form.briefing} set={set} k="briefing"/></>}
+   {type==='task' && <><Select label="Cliente" value={form.clientId} set={set} k="clientId" opts={[['','Sem cliente'],...data.clients.map(c=>[c.id,c.name])]}/><Input label="Título" value={form.title} set={set} k="title"/><Select label="Status" value={form.status} set={set} k="status" opts={['A Fazer','Em Produção','Aguardando Cliente','Aguardando Pagamento','Concluído']}/><Input label="Prazo" value={form.due} set={set} k="due" type="date"/><Input label="Tipo" value={form.type} set={set} k="type"/><Input label="Descrição" value={form.description} set={set} k="description"/></>}
+   {type==='event' && <><Select label="Cliente" value={form.clientId} set={set} k="clientId" opts={[['','Sem cliente'],...data.clients.map(c=>[c.id,c.name])]}/><Input label="Título" value={form.title} set={set} k="title"/><Input label="Data" value={form.date} set={set} k="date" type="date"/><Input label="Hora" value={form.time} set={set} k="time" type="time"/><Select label="Prioridade" value={form.priority} set={set} k="priority" opts={['Baixa','Média','Alta','Urgente']}/><Input label="Tipo" value={form.type} set={set} k="type"/></>}
+   {type==='finance' && <><Select label="Cliente" value={form.clientId} set={set} k="clientId" opts={[['','Sem cliente'],...data.clients.map(c=>[c.id,c.name])]}/><Input label="Título" value={form.title} set={set} k="title"/><Select label="Tipo" value={form.type} set={set} k="type" opts={['Receita','Gasto']}/><Input label="Valor" value={form.amount} set={set} k="amount" type="number"/><Input label="Vencimento" value={form.due} set={set} k="due" type="date"/><Select label="Status" value={form.status} set={set} k="status" opts={['Pendente','Pago','Atrasado']}/></>}
+  </div><div className="modalActions"><Button ghost onClick={close}>Cancelar</Button><Button onClick={submit}>{isEdit?'Salvar alterações':'Salvar'}</Button></div></div></div>
 }
-function Input({label,set,k,type='text'}){return <label className="field"><span>{label}</span><input type={type} onChange={e=>set(k,e.target.value)}/></label>}
-function Select({label,set,k,opts}){return <label className="field"><span>{label}</span><select onChange={e=>set(k,e.target.value)}>{opts.map(o=>Array.isArray(o)?<option value={o[0]} key={o[0]}>{o[1]}</option>:<option key={o}>{o}</option>)}</select></label>}
+function Input({label,set,k,value='',type='text'}){return <label className="field"><span>{label}</span><input type={type} value={value ?? ''} onChange={e=>set(k,e.target.value)}/></label>}
+function Select({label,set,k,opts,value=''}){return <label className="field"><span>{label}</span><select value={value ?? ''} onChange={e=>set(k,e.target.value)}>{opts.map(o=>Array.isArray(o)?<option value={o[0]} key={o[0]}>{o[1]}</option>:<option key={o}>{o}</option>)}</select></label>}
+
 
 createRoot(document.getElementById('root')).render(<App/>);
