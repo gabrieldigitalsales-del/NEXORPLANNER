@@ -1,4 +1,6 @@
-# NEXOR Planner V12 — CRUD + Base Zerada
+# NEXOR Planner V13 — Cliente Inteligente
+
+Senha simples local: `asd123`
 
 ## Rodar localmente
 ```bash
@@ -6,40 +8,23 @@ npm install
 npm run dev
 ```
 
-Senha simples local: `asd123`
+## O que mudou nesta versão
+- Modal de cliente redesenhado e mais inteligente.
+- Campos de contrato e recorrência:
+  - tipo de contrato: recorrente ou serviço único;
+  - frequência: serviço único, semanal, quinzenal, mensal, trimestral, semestral ou anual;
+  - data de início;
+  - tempo de contrato: sem prazo, 1, 3, 6, 12, 24 meses ou data final personalizada;
+  - data final calculada automaticamente;
+  - dia de vencimento;
+  - resumo automático do contrato antes de salvar.
+- Página individual do cliente exibe frequência, início, fim e duração do contrato.
+- Cards de cliente exibem frequência e contrato.
+- CSS ajustado para modal maior, seções internas e responsividade.
 
-## Alterações desta versão
-- Base inicial zerada, sem clientes, tarefas, eventos, financeiro ou arquivos de exemplo.
-- Novo `localStorage` para começar limpo no navegador.
-- Botões de adicionar, editar e apagar clientes.
-- Botões de editar e apagar tarefas.
-- Botões de editar e apagar receitas/gastos.
-- Exclusão de cliente remove automaticamente tarefas, eventos, financeiro e arquivos vinculados.
-- Modais reutilizados para criar e editar.
-- Campos de edição já abrem preenchidos.
-- Mantida preparação para Supabase/Vercel.
+## Supabase
+Se estiver criando o banco do zero, use:
+`supabase_nexor_planner.sql`
 
-## Reset operacional no Supabase
-Use no SQL Editor para zerar dados do planner sem mexer em outros projetos:
-
-```sql
-truncate table public.nexor_planner_files restart identity cascade;
-truncate table public.nexor_planner_finances restart identity cascade;
-truncate table public.nexor_planner_events restart identity cascade;
-truncate table public.nexor_planner_tasks restart identity cascade;
-truncate table public.nexor_planner_clients restart identity cascade;
-```
-
-Se quiser zerar também configurações e perfis:
-
-```sql
-truncate table public.nexor_planner_files restart identity cascade;
-truncate table public.nexor_planner_finances restart identity cascade;
-truncate table public.nexor_planner_events restart identity cascade;
-truncate table public.nexor_planner_tasks restart identity cascade;
-truncate table public.nexor_planner_clients restart identity cascade;
-truncate table public.nexor_planner_settings restart identity cascade;
-truncate table public.nexor_planner_profiles restart identity cascade;
-```
-
-Arquivos físicos do Supabase Storage devem ser removidos pela tela Storage ou pela Storage API.
+Se o banco já existir, rode apenas:
+`supabase_nexor_planner_v13_clientes_inteligentes.sql`

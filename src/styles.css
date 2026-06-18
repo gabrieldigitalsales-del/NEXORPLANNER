@@ -69,3 +69,17 @@
 .btn.danger{background:#dc2626;color:#fff;border-color:#dc2626}
 .btn.danger:hover{background:#b91c1c}
 @media(max-width:820px){.lineActions{width:100%;justify-content:flex-start}.rowActions{justify-content:flex-start}.iconAction{flex:1;justify-content:center}.actions{flex-wrap:wrap}}
+
+/* Cliente inteligente: contrato e recorrência */
+.modal{width:min(860px,100%)}
+.formSection{background:#faf9f6;border:1px solid #f0ede6;border-radius:12px;padding:12px 14px;margin:4px 0 2px}
+.formSection h3{margin:0 0 4px;font-size:14px;font-weight:600;color:#111827}
+.formSection p{margin:0;color:#64748b;font-size:12px;line-height:1.4}
+.fullField{grid-column:1/-1}
+.contractPreview{display:flex;gap:12px;align-items:flex-start;background:#fff8e8;border:1px solid #f5e6bd;color:#765a22;border-radius:12px;padding:13px 14px}
+.contractPreview strong{display:block;margin-bottom:3px;color:#72551d}
+.contractPreview p{margin:0;line-height:1.45;font-size:13px}
+.field input:focus,.field select:focus{outline:0;border-color:#b59d6a;box-shadow:0 0 0 3px rgba(181,157,106,.15)}
+.detailInfo.clientInfo.full{grid-template-columns:repeat(4,1fr)}
+@media(max-width:820px){.modal{width:min(680px,100%)}.detailInfo.clientInfo.full{grid-template-columns:1fr 1fr}.contractPreview{flex-direction:column}.fullField{grid-column:1/-1}}
+@media(max-width:480px){.detailInfo.clientInfo.full{grid-template-columns:1fr}}

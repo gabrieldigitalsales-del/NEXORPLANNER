@@ -11,11 +11,22 @@ import { ptBR } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import './styles.css';
 
-const STORAGE_KEY = 'nexor-planner-v12-crud-zero';
+const STORAGE_KEY = 'nexor-planner-v13-cliente-inteligente';
 const AUTH_KEY = 'nexor-planner-simple-auth';
 const SIMPLE_PASSWORD = 'asd123';
 const money = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const todayISO = () => new Date().toISOString().slice(0, 10);
+const frequencyLabel = (f) => ({unico:'Serviço único', semanal:'Semanal', quinzenal:'Quinzenal', mensal:'Mensal', trimestral:'Trimestral', semestral:'Semestral', anual:'Anual'}[f] || f || 'Mensal');
+const durationLabel = (m) => m === 'unlimited' ? 'Sem prazo definido' : m === 'custom' ? 'Personalizado' : `${m || 12} meses`;
+const billingDayLabel = (d) => d ? `Dia ${d}` : 'Sem vencimento';
+const calcEndDate = (startDate, durationMonths, customEndDate) => {
+  if (durationMonths === 'unlimited') return '';
+  if (durationMonths === 'custom') return customEndDate || '';
+  if (!startDate) return '';
+  const n = Number(durationMonths || 12);
+  if (!n) return '';
+  return addMonths(parseISO(startDate), n).toISOString().slice(0,10);
+};
 const daysDiff = (date) => Math.ceil((new Date(date + 'T23:59:00') - new Date()) / 86400000);
 const formatBytes = (bytes=0) => bytes < 1024 ? `${bytes} B` : bytes < 1048576 ? `${(bytes/1024).toFixed(1)} KB` : `${(bytes/1048576).toFixed(1)} MB`;
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -261,7 +272,7 @@ function Clients({ data, update, openClient, setModal }) {
  <div className="filters wide"><label><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar cliente..."/></label><select value={status} onChange={e=>setStatus(e.target.value)}><option>Todos</option><option>Ativo</option><option>Aguardando Pagamento</option><option>Em Atraso</option><option>Pausado</option><option>Concluído</option></select></div>
  <div className="clientGrid">{list.length?list.map(c=><ClientCard key={c.id} c={c} tasks={data.tasks.filter(t=>t.clientId===c.id&&t.status!=='Concluído')} files={data.files.filter(f=>f.clientId===c.id)} open={()=>openClient(c)} onEdit={()=>setModal({type:'client', item:c})} onDelete={()=>deleteClient(c)}/>):<Card><Empty text="Nenhum cliente cadastrado. Clique em Novo Cliente para começar do zero."/></Card>}</div></>
 }
-function ClientCard({ c, tasks, files, open, onEdit, onDelete }) { const tone=c.status==='Ativo'?'success':c.status==='Em Atraso'?'danger':'warn'; return <Card className="clientCard"><div className="clientTop"><div className="avatarSquare" style={{background:(c.color||'#a38955')+'18', color:c.color||'#a38955'}}>{(c.name||'C')[0]}</div><div><h3>{c.name}</h3><p>{c.contact}</p></div><Badge tone={tone}>{c.status}</Badge></div><div className="clientInfo"><p>Serviço<br/><strong>{c.service}</strong></p><p>Valor mensal<br/><strong>{money(c.monthly)}</strong></p><p>Vencimento<br/><strong>Dia {c.dueDay}</strong></p><p>Arquivos<br/><strong>{files.length} doc(s)</strong></p><p>Tarefas<br/><strong>{tasks.length} ativa{tasks.length===1?'':'s'}</strong></p><p>Prioridade<br/><strong>{tasks[0] ? autoPriority(tasks[0].due, tasks[0].status) : 'Baixa'}</strong></p></div><div className="cardFooter"><button onClick={()=>whatsapp(c.phone, `Olá ${c.contact}, tudo bem?`)}><MessageCircle size={16}/> WhatsApp</button><button onClick={open}>Ver detalhes <ArrowRight size={15}/></button></div><div className="rowActions"><button className="iconAction" onClick={onEdit}><Pencil size={15}/> Editar</button><button className="iconAction danger" onClick={onDelete}><Trash2 size={15}/> Apagar</button></div></Card> }
+function ClientCard({ c, tasks, files, open, onEdit, onDelete }) { const tone=c.status==='Ativo'?'success':c.status==='Em Atraso'?'danger':'warn'; return <Card className="clientCard"><div className="clientTop"><div className="avatarSquare" style={{background:(c.color||'#a38955')+'18', color:c.color||'#a38955'}}>{(c.name||'C')[0]}</div><div><h3>{c.name}</h3><p>{c.contact}</p></div><Badge tone={tone}>{c.status}</Badge></div><div className="clientInfo"><p>Serviço<br/><strong>{c.service}</strong></p><p>Valor mensal<br/><strong>{money(c.monthly)}</strong></p><p>Frequência<br/><strong>{frequencyLabel(c.billingFrequency)}</strong></p><p>Vencimento<br/><strong>{billingDayLabel(c.dueDay)}</strong></p><p>Contrato<br/><strong>{durationLabel(c.contractDuration)}</strong></p><p>Arquivos<br/><strong>{files.length} doc(s)</strong></p><p>Tarefas<br/><strong>{tasks.length} ativa{tasks.length===1?'':'s'}</strong></p><p>Prioridade<br/><strong>{tasks[0] ? autoPriority(tasks[0].due, tasks[0].status) : 'Baixa'}</strong></p></div><div className="cardFooter"><button onClick={()=>whatsapp(c.phone, `Olá ${c.contact}, tudo bem?`)}><MessageCircle size={16}/> WhatsApp</button><button onClick={open}>Ver detalhes <ArrowRight size={15}/></button></div><div className="rowActions"><button className="iconAction" onClick={onEdit}><Pencil size={15}/> Editar</button><button className="iconAction danger" onClick={onDelete}><Trash2 size={15}/> Apagar</button></div></Card> }
 
 function ClientDetail({ data, update, id, back, clientById, setModal }) {
  const c=clientById(id)||data.clients[0];
@@ -271,7 +282,7 @@ function ClientDetail({ data, update, id, back, clientById, setModal }) {
  const addFiles=(e)=>{ const selected=Array.from(e.target.files||[]); selected.forEach(file=>{ const r=new FileReader(); r.onload=()=> update({ files:[...data.files,{id:uid(),clientId:c.id,name:file.name,type:file.type||'Arquivo',size:file.size,category:guessCategory(file.name),createdAt:todayISO(),dataUrl:r.result}] }); r.readAsDataURL(file); }); e.target.value=''; };
  const removeFile=(fileId)=> update({ files:data.files.filter(f=>f.id!==fileId) });
  return <><PageTitle title={c.name} subtitle={`${c.contact} • ${c.service}`} action={<div className="actions"><Button ghost onClick={back}>Voltar</Button><Button ghost onClick={()=>setModal({type:'client', item:c})}><Pencil size={18}/> Editar</Button><Button danger onClick={deleteClient}><Trash2 size={18}/> Apagar</Button><Button onClick={()=>whatsapp(c.phone, `Olá ${c.contact}, tudo bem?`)}><MessageCircle size={18}/> WhatsApp</Button></div>} />
- <div className="detailGrid"><Card><h3>Dados principais</h3><div className="clientInfo full detailInfo"><div className="infoField"><span className="infoLabel">Status</span><Badge tone={c.status==='Ativo'?'success':c.status==='Em Atraso'?'danger':'warn'}>{c.status}</Badge></div><div className="infoField"><span className="infoLabel">Valor mensal</span><strong>{money(c.monthly)}</strong></div><div className="infoField"><span className="infoLabel">Vencimento</span><strong>Dia {c.dueDay}</strong></div><div className="infoField"><span className="infoLabel">Score</span><strong className="score">{score}/100</strong></div></div><p className="muted block">{c.notes}</p></Card><Card><h3>Briefing</h3><p className="muted block">{c.briefing}</p></Card><Card><h3>Tarefas do cliente</h3>{tasks.length?tasks.map(t=><TaskSmall key={t.id} t={t} showPriority />):<Empty text="Nenhuma tarefa cadastrada"/>}</Card><Card><h3>Financeiro do cliente</h3>{finances.length?finances.map(f=><FinanceLine key={f.id} f={f}/>):<Empty text="Nenhum lançamento"/>}</Card><Card className="fullSpan"><div className="sectionHead"><h3><FolderOpen size={18}/> Documentos e burocracia</h3><label className="btn ghost"><Upload size={17}/> Enviar ficheiro<input hidden type="file" multiple onChange={addFiles}/></label></div><FileList files={files} onRemove={removeFile}/></Card></div></>
+ <div className="detailGrid"><Card><h3>Dados principais</h3><div className="clientInfo full detailInfo"><div className="infoField"><span className="infoLabel">Status</span><Badge tone={c.status==='Ativo'?'success':c.status==='Em Atraso'?'danger':'warn'}>{c.status}</Badge></div><div className="infoField"><span className="infoLabel">Valor</span><strong>{money(c.monthly)}</strong></div><div className="infoField"><span className="infoLabel">Frequência</span><strong>{frequencyLabel(c.billingFrequency)}</strong></div><div className="infoField"><span className="infoLabel">Vencimento</span><strong>{billingDayLabel(c.dueDay)}</strong></div><div className="infoField"><span className="infoLabel">Início</span><strong>{c.startDate ? format(parseISO(c.startDate),'dd/MM/yyyy') : '-'}</strong></div><div className="infoField"><span className="infoLabel">Fim</span><strong>{c.endDate ? format(parseISO(c.endDate),'dd/MM/yyyy') : 'Sem prazo'}</strong></div><div className="infoField"><span className="infoLabel">Contrato</span><strong>{durationLabel(c.contractDuration)}</strong></div><div className="infoField"><span className="infoLabel">Score</span><strong className="score">{score}/100</strong></div></div><p className="muted block">{c.notes || 'Sem observações cadastradas.'}</p></Card><Card><h3>Briefing</h3><p className="muted block">{c.briefing || 'Nenhum briefing informado.'}</p></Card><Card><h3>Tarefas do cliente</h3>{tasks.length?tasks.map(t=><TaskSmall key={t.id} t={t} showPriority />):<Empty text="Nenhuma tarefa cadastrada"/>}</Card><Card><h3>Financeiro do cliente</h3>{finances.length?finances.map(f=><FinanceLine key={f.id} f={f}/>):<Empty text="Nenhum lançamento"/>}</Card><Card className="fullSpan"><div className="sectionHead"><h3><FolderOpen size={18}/> Documentos e burocracia</h3><label className="btn ghost"><Upload size={17}/> Enviar ficheiro<input hidden type="file" multiple onChange={addFiles}/></label></div><FileList files={files} onRemove={removeFile}/></Card></div></>
 }
 function guessCategory(name=''){ const n=name.toLowerCase(); if(n.includes('contrato')) return 'Contrato'; if(n.includes('nota')||n.includes('nf')) return 'Nota Fiscal'; if(n.includes('proposta')) return 'Proposta'; return 'Burocrático'; }
 function FileList({ files, onRemove }) { return <div className="fileList">{files.length?files.map(f=><div className="fileLine" key={f.id}><div className="fileIcon"><FileText size={18}/></div><div><strong>{f.name}</strong><p>{f.category} • {formatBytes(f.size)} • {f.createdAt ? format(parseISO(f.createdAt),'dd/MM/yyyy') : ''}</p></div><div className="fileActions">{f.dataUrl ? <a className="btn ghost mini" href={f.dataUrl} download={f.name}><Download size={15}/> Baixar</a> : <span className="muted">exemplo</span>}<button className="miniIcon" onClick={()=>onRemove(f.id)}><Trash2 size={16}/></button></div></div>):<Empty text="Nenhum documento anexado. Envie contratos, propostas, notas, briefings ou partes burocráticas."/>}</div> }
@@ -333,7 +344,7 @@ function Modal({ modal, close, data, update }) {
  const isEdit=Boolean(item?.id);
  function submit(){
   if(type==='client') {
-   const payload={id:item?.id||uid(),name:form.name||'Novo Cliente',contact:form.contact||'',phone:form.phone||'',service:form.service||'Social Media',monthly:Number(form.monthly||0),dueDay:Number(form.dueDay||10),status:form.status||'Ativo',color:form.color||item?.color||'#a38955',notes:form.notes||'',briefing:form.briefing||''};
+   const payload={id:item?.id||uid(),name:form.name||'Novo Cliente',contact:form.contact||'',phone:form.phone||'',service:form.service||'Social Media',monthly:Number(form.monthly||0),dueDay:Number(form.dueDay||10),status:form.status||'Ativo',contractType:form.contractType||'recorrente',billingFrequency:(form.contractType==='unico'?'unico':(form.billingFrequency||'mensal')),startDate:form.startDate||todayISO(),contractDuration:form.contractDuration||'12',customEndDate:form.customEndDate||'',endDate:calcEndDate(form.startDate||todayISO(), form.contractDuration||'12', form.customEndDate),autoBilling:form.autoBilling ?? true,color:form.color||item?.color||'#a38955',notes:form.notes||'',briefing:form.briefing||''};
    update({clients:isEdit?data.clients.map(c=>c.id===item.id?payload:c):[...data.clients,payload]});
   }
   if(type==='task') {
@@ -353,13 +364,50 @@ function Modal({ modal, close, data, update }) {
  const title={client:isEdit?'Editar Cliente':'Novo Cliente',task:isEdit?'Editar Tarefa':'Nova Tarefa',event:isEdit?'Editar Evento':'Novo Evento',finance:isEdit?'Editar Lançamento':'Novo Lançamento'}[type];
  return <div className="overlay"><div className="modal"><div className="modalHead"><h2>{title}</h2><button onClick={close}><X/></button></div>
   <div className="formGrid">
-   {type==='client' && <><Input label="Empresa" value={form.name} set={set} k="name"/><Input label="Responsável" value={form.contact} set={set} k="contact"/><Input label="WhatsApp" value={form.phone} set={set} k="phone"/><Input label="Serviço" value={form.service} set={set} k="service"/><Input label="Valor mensal" value={form.monthly} set={set} k="monthly" type="number"/><Input label="Dia vencimento" value={form.dueDay} set={set} k="dueDay" type="number"/><Select label="Status" value={form.status} set={set} k="status" opts={['Ativo','Aguardando Pagamento','Em Atraso','Pausado','Concluído']}/><Input label="Briefing" value={form.briefing} set={set} k="briefing"/></>}
+   {type==='client' && <ClientSmartForm form={form} set={set} />}
    {type==='task' && <><Select label="Cliente" value={form.clientId} set={set} k="clientId" opts={[['','Sem cliente'],...data.clients.map(c=>[c.id,c.name])]}/><Input label="Título" value={form.title} set={set} k="title"/><Select label="Status" value={form.status} set={set} k="status" opts={['A Fazer','Em Produção','Aguardando Cliente','Aguardando Pagamento','Concluído']}/><Input label="Prazo" value={form.due} set={set} k="due" type="date"/><Input label="Tipo" value={form.type} set={set} k="type"/><Input label="Descrição" value={form.description} set={set} k="description"/></>}
    {type==='event' && <><Select label="Cliente" value={form.clientId} set={set} k="clientId" opts={[['','Sem cliente'],...data.clients.map(c=>[c.id,c.name])]}/><Input label="Título" value={form.title} set={set} k="title"/><Input label="Data" value={form.date} set={set} k="date" type="date"/><Input label="Hora" value={form.time} set={set} k="time" type="time"/><Select label="Prioridade" value={form.priority} set={set} k="priority" opts={['Baixa','Média','Alta','Urgente']}/><Input label="Tipo" value={form.type} set={set} k="type"/></>}
    {type==='finance' && <><Select label="Cliente" value={form.clientId} set={set} k="clientId" opts={[['','Sem cliente'],...data.clients.map(c=>[c.id,c.name])]}/><Input label="Título" value={form.title} set={set} k="title"/><Select label="Tipo" value={form.type} set={set} k="type" opts={['Receita','Gasto']}/><Input label="Valor" value={form.amount} set={set} k="amount" type="number"/><Input label="Vencimento" value={form.due} set={set} k="due" type="date"/><Select label="Status" value={form.status} set={set} k="status" opts={['Pendente','Pago','Atrasado']}/></>}
   </div><div className="modalActions"><Button ghost onClick={close}>Cancelar</Button><Button onClick={submit}>{isEdit?'Salvar alterações':'Salvar'}</Button></div></div></div>
 }
-function Input({label,set,k,value='',type='text'}){return <label className="field"><span>{label}</span><input type={type} value={value ?? ''} onChange={e=>set(k,e.target.value)}/></label>}
+
+function ClientSmartForm({ form, set }) {
+ const startDate = form.startDate || todayISO();
+ const duration = form.contractDuration || '12';
+ const endDate = calcEndDate(startDate, duration, form.customEndDate);
+ const isUnique = (form.contractType || 'recorrente') === 'unico' || form.billingFrequency === 'unico';
+ return <>
+  <div className="formSection fullField"><h3>Dados do cliente</h3><p>Informações principais para identificar o cliente dentro da central.</p></div>
+  <Input label="Empresa" value={form.name} set={set} k="name"/>
+  <Input label="Responsável" value={form.contact} set={set} k="contact"/>
+  <Input label="WhatsApp" value={form.phone} set={set} k="phone"/>
+  <Input label="Serviço contratado" value={form.service} set={set} k="service" placeholder="Ex: Social Media, Site, Sistema"/>
+
+  <div className="formSection fullField"><h3>Contrato e recorrência</h3><p>Defina se é serviço único ou recorrente, data de início, duração e frequência de cobrança.</p></div>
+  <Select label="Tipo de contrato" value={form.contractType || 'recorrente'} set={set} k="contractType" opts={[['recorrente','Contrato recorrente'],['unico','Serviço único']]}/>
+  <Select label="Frequência" value={form.billingFrequency || (isUnique ? 'unico' : 'mensal')} set={set} k="billingFrequency" opts={[['unico','Serviço único'],['semanal','Semanal'],['quinzenal','Quinzenal'],['mensal','Mensal'],['trimestral','Trimestral'],['semestral','Semestral'],['anual','Anual']]}/>
+  <Input label="Data de início" value={startDate} set={set} k="startDate" type="date"/>
+  <Select label="Tempo de contrato" value={duration} set={set} k="contractDuration" opts={[['unlimited','Sem prazo definido'],['1','1 mês'],['3','3 meses'],['6','6 meses'],['12','12 meses'],['24','24 meses'],['custom','Data final personalizada']]}/>
+  {duration === 'custom' && <Input label="Data final personalizada" value={form.customEndDate} set={set} k="customEndDate" type="date"/>}
+  <Input label="Dia de vencimento" value={form.dueDay || 10} set={set} k="dueDay" type="number" min="1" max="31"/>
+
+  <div className="contractPreview fullField">
+   <Sparkles size={18}/>
+   <div>
+    <strong>Resumo automático</strong>
+    <p>{isUnique ? 'Serviço único' : `Contrato ${frequencyLabel(form.billingFrequency || 'mensal').toLowerCase()}`} iniciado em {format(parseISO(startDate), 'dd/MM/yyyy')}. {endDate ? `Termina em ${format(parseISO(endDate), 'dd/MM/yyyy')}.` : 'Sem data final definida.'} Cobrança: {billingDayLabel(form.dueDay || 10)}.</p>
+   </div>
+  </div>
+
+  <div className="formSection fullField"><h3>Financeiro e status</h3><p>Valores e situação atual do cliente.</p></div>
+  <Input label={isUnique ? 'Valor do serviço' : 'Valor recorrente'} value={form.monthly} set={set} k="monthly" type="number"/>
+  <Select label="Status" value={form.status || 'Ativo'} set={set} k="status" opts={['Ativo','Aguardando Pagamento','Em Atraso','Pausado','Concluído']}/>
+  <Input label="Briefing" value={form.briefing} set={set} k="briefing"/>
+  <Input label="Observações internas" value={form.notes} set={set} k="notes"/>
+ </>
+}
+
+function Input({label,set,k,value='',type='text',placeholder='',min,max}){return <label className="field"><span>{label}</span><input type={type} value={value ?? ''} min={min} max={max} placeholder={placeholder} onChange={e=>set(k,e.target.value)}/></label>}
 function Select({label,set,k,opts,value=''}){return <label className="field"><span>{label}</span><select value={value ?? ''} onChange={e=>set(k,e.target.value)}>{opts.map(o=>Array.isArray(o)?<option value={o[0]} key={o[0]}>{o[1]}</option>:<option key={o}>{o}</option>)}</select></label>}
 
 
